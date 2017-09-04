@@ -12,7 +12,7 @@ module.exports = function(x,y,callback) {
             area:function () {
         		    return (x*y);
 			}
-    });
+         });
   }
   catch (error) {
         callback(error,null);
