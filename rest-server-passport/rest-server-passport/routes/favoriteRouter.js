@@ -27,41 +27,44 @@ favoriteRouter.route('/')
 	Dishes.findById(req.body._id)
 	    .exec(function (err, dish) {
 	    if (err) {throw err;} //dish not found in the Dishes list - error!
-	    console.log("Found dish=" + JSON.stringify(dish));
 	    //console.log("Current favDishes list is: " + JSON.stringify(this.dishes));
 	    //The dish id (_id) is valid. So now check if it is already in our Favorites list.
-	    	//that later
-	    //And if not present, add to the fav-dishes list
-	    	//do this first!
-	    Favorites.create(req.body, function (err, favorite) {
-	        if (err) throw err;
-	        console.log('Favorite created: ' + JSON.stringify(favorite));
-	        //favorite.dishes.push(dish);
-	        if (favorite.dishes.indexOf(dish) === -1) {
-	        	favorite.dishes.push(dish);
-	        	favorite.postedBy = req.decoded.data._id;
-		        favorite.save(function (err, favorite) {
-		            if (err) throw err;
-		            console.log('Updated Fav dishes array!');
-		            res.json(favorite);
-		        });
-		        console.log('Favorite dishes added: ' + JSON.stringify(favorite));
-	        }
-	        else {
-	        	console.log("This dish already exists as a favorite.");
-	        }
-	    });
-    });
-    /*Favorites.create(req.body, function (err, favorite) {
-        if (err) throw err;
-        console.log('Favorite created: ' + JSON.stringify(favorite));
-        var id = dish._id;
-        res.writeHead(200, {
-            'Content-Type': 'text/plain'
-        });
+	    //e.g. db.Employee.find({EmployeeName : "Smith"}).forEach(printjson);
+	    var id= req.body._id;
+	    //console.log("Valid dish Id: " + id);
+	    Favorites.find({_id : id})
+	     	.exec(function (err, fav) {
+	     		if (fav.length>0) { //} && fav !== 'null' && fav !== 'undefined') {
+	     			console.log("Dish already present as fav: " + id + ". IGNORE this post."); // obj=" + JSON.stringify(fav));
+	     			res.json(fav);
+	     		}
+	     		else { //dish not found in the current favs list - add it!
+	     			//console.log("Dish NOT present in fav: " + id);
+	     			
+	     		    //And if not present, add to the fav-dishes list
 
-        res.end('Added the favorite with id: ' + id);
-    });*/
+	     		    Favorites.create(req.body, function (err, favorite) {
+	     		        if (err) throw err;
+	     		        console.log('Favorite created: ' + JSON.stringify(favorite));
+	     	        	favorite.dishes.push(dish);
+	     	        	favorite.postedBy = req.decoded.data._id;
+	     		        favorite.save(function (err, favorite) {
+	     		            if (err) throw err;
+	     		            console.log('Updated Fav dishes array!');
+	     		            res.json(favorite);
+	     		        });
+	     		        console.log('Favorite dishes added: ' + JSON.stringify(favorite));
+	     		    });
+	     		}
+	     	});
+    });
+})
+
+.delete(Verify.verifyOrdinaryUser, Verify.verifyAdmin, function (req, res, next) {
+	Favorites.remove({}, function (err, resp) {
+        if (err) throw err;
+        res.json(resp);
+    });
 })
 
 .delete(Verify.verifyOrdinaryUser, Verify.verifyAdmin, function (req, res, next) {
